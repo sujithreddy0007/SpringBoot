@@ -4,11 +4,11 @@
        xsi:schemaLocation="
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id = "specification(anything you can keep, only Type matte" class = "com.example.autowire.type.Specification" >
+    <bean id = "specification(anything)" class = "com.example.autowire.constructor.Specification" >
         <property name="make" value="Toyoto"/>
         <property name="model" value="Corollo"/>
     </bean>
 
-   <bean id = "myCar" class = "com.example.autowire.type.Car" autowire="byType"/>
+   <bean id = "myCar" class = "com.example.autowire.constructor.Car" autowire="constructor"/>
 
 </beans>
