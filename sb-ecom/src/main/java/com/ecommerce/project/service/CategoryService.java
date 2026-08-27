@@ -8,10 +8,10 @@ import java.util.List;
 
 public interface CategoryService {
     CategoryResponse getAllCategories();
-//    void createCategory(Category category);
 
     CategoryDTO createCategory(CategoryDTO categoryDTO);
 
-    String deleteCategory(Long categoryID);
+    CategoryDTO deleteCategory(Long categoryID);
+
     CategoryDTO updateCategory(CategoryDTO categoryDTO, Long categoryId);
 }
