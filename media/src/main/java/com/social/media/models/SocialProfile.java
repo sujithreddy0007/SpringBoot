@@ -8,7 +8,7 @@ public class SocialProfile {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    @OneToOne
+    @OneToOne()
     @JoinColumn(name = "social_user")
     private SocialUser user;
 }
