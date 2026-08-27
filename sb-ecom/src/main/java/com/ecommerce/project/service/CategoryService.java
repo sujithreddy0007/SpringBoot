@@ -7,7 +7,7 @@ import com.ecommerce.project.payload.CategoryResponse;
 import java.util.List;
 
 public interface CategoryService {
-    CategoryResponse getAllCategories(Integer pageNumber,Integer pageSize);
+    CategoryResponse getAllCategories(Integer pageNumber,Integer pageSize,String sortBy,String sortOrder);
 
     CategoryDTO createCategory(CategoryDTO categoryDTO);
 
