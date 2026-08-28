@@ -14,9 +14,11 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long productId;
     private String productName;
+    private String image;
     private String description;
     private Integer quantity;
     private double price;
+    private double discount;
     private double specialPrice;
 
     @ManyToOne
