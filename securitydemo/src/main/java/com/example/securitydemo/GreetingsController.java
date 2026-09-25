@@ -14,7 +14,7 @@ public class GreetingsController {
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/user")
     public String userEndpoint(){
-        return "Hello Uer!";
+        return "Hello User!";
     }
 
     @PreAuthorize("hasRole('ADMIN')")
