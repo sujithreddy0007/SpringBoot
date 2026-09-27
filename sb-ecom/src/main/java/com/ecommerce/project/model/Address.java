@@ -3,6 +3,7 @@ package com.ecommerce.project.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.ToString;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ public class Address {
     @Size(min = 5, message = "pincode name must be atleast 6 characters")
     private String pincode;
 
+    @ToString.Exclude
     @ManyToMany(mappedBy = "addresses")
     private List<User> users = new ArrayList<>();
 
