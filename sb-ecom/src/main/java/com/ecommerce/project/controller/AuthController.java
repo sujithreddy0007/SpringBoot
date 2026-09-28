@@ -3,6 +3,7 @@ package com.ecommerce.project.controller;
 import com.ecommerce.project.model.AppRole;
 import com.ecommerce.project.model.Role;
 import com.ecommerce.project.model.User;
+import com.ecommerce.project.repositories.RoleRepository;
 import com.ecommerce.project.repositories.UserRepository;
 import com.ecommerce.project.security.jwt.JwtUtils;
 import com.ecommerce.project.security.request.LoginRequest;
@@ -96,23 +97,23 @@ public class AuthController {
         Set<Role> roles = new HashSet<>();
 
         if(strRoles == null){
-            Role userRole = roleRepository.findByRoleName(AppRole.ROLE_USER)
+            Role userRole = (Role) roleRepository.findByRoleName(AppRole.ROLE_USER)
                     .orElseThrow(() -> new RuntimeException("Error: Role is not found"));
             roles.add(userRole);
         }else{
             strRoles.forEach(role -> {
                 switch (role){
                     case "admin":
-                        Role adminRole = roleRepository.findByRoleName(AppRole.ROLE_ADMIN)
+                        Role adminRole = (Role) roleRepository.findByRoleName(AppRole.ROLE_ADMIN)
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found"));
                         roles.add(adminRole);
                         break;
                     case "seller":
-                        Role sellerRole = roleRepository.findByRoleName(AppRole.ROLE_SELLER)
+                        Role sellerRole = (Role) roleRepository.findByRoleName(AppRole.ROLE_SELLER)
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found"));
                         roles.add(sellerRole);
                     default :
-                        Role userRole = roleRepository.findByRoleName(AppRole.ROLE_USER)
+                        Role userRole = (Role) roleRepository.findByRoleName(AppRole.ROLE_USER)
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found"));
                         roles.add(userRole);
                 }
