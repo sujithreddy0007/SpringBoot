@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.modelmapper.internal.bytebuddy.utility.dispatcher.JavaDispatcher;
 
 @Entity
 @NoArgsConstructor
@@ -13,6 +12,7 @@ import org.modelmapper.internal.bytebuddy.utility.dispatcher.JavaDispatcher;
 @Data
 @Table(name = "roles")
 public class Role {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "role_id")
@@ -27,4 +27,3 @@ public class Role {
         this.roleName = roleName;
     }
 }
-

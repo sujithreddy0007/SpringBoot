@@ -8,13 +8,13 @@ import com.ecommerce.project.repositories.UserRepository;
 import com.ecommerce.project.security.jwt.AuthEntryPointJwt;
 import com.ecommerce.project.security.jwt.AuthTokenFilter;
 import com.ecommerce.project.security.services.UserDetailsServiceImpl;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
@@ -24,7 +24,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import java.util.HashSet;
 import java.util.Set;
 
 @Configuration
@@ -32,39 +31,18 @@ import java.util.Set;
 public class WebSecurityConfig {
 
     @Autowired
-    private UserDetailsServiceImpl userDetailsService;
+    UserDetailsServiceImpl userDetailsService;
 
     @Autowired
     private AuthEntryPointJwt unauthorizedHandler;
-
-
-    // --------------------------------------------------
-    // JWT FILTER
-    // --------------------------------------------------
 
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter() {
         return new AuthTokenFilter();
     }
 
-
-    // --------------------------------------------------
-    // PASSWORD ENCODER
-    // --------------------------------------------------
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-
-    // --------------------------------------------------
-    // AUTHENTICATION PROVIDER
-    // --------------------------------------------------
-
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
-
         DaoAuthenticationProvider authProvider =
                 new DaoAuthenticationProvider(userDetailsService);
 
@@ -73,74 +51,40 @@ public class WebSecurityConfig {
         return authProvider;
     }
 
-
-    // --------------------------------------------------
-    // AUTHENTICATION MANAGER
-    // --------------------------------------------------
-
     @Bean
     public AuthenticationManager authenticationManager(
-            org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration authConfig)
-            throws Exception {
-
+            AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
     }
 
-
-    // --------------------------------------------------
-    // SECURITY FILTER CHAIN
-    // --------------------------------------------------
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                // Disable CSRF because this is a stateless JWT API
                 .csrf(csrf -> csrf.disable())
-
-                // Handle unauthorized requests
                 .exceptionHandling(exception ->
-                        exception.authenticationEntryPoint(unauthorizedHandler)
-                )
-
-                // JWT authentication = stateless
+                        exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth ->
+                        auth.requestMatchers("/api/auth/**").permitAll()
+                                .requestMatchers("/v3/api-docs/**").permitAll()
+                                .requestMatchers("/h2-console/**").permitAll()
+                                .requestMatchers("/swagger-ui/**").permitAll()
+                                .requestMatchers("/api/test/**").permitAll()
+                                .requestMatchers("/images/**").permitAll()
+                                .anyRequest().authenticated()
                 )
-
-                // Authorization rules
-                .authorizeHttpRequests(auth -> auth
-
-                        // Authentication endpoints
-                        .requestMatchers("/api/auth/**").permitAll()
-
-                        // Swagger / OpenAPI
-                        .requestMatchers("/v3/api-docs/**").permitAll()
-                        .requestMatchers("/swagger-ui/**").permitAll()
-
-                        // H2 console
-                        .requestMatchers("/h2-console/**").permitAll()
-
-                        // Test endpoints
-                        .requestMatchers("/api/test/**").permitAll()
-
-                        // Static images
-                        .requestMatchers("/images/**").permitAll()
-
-                        // Everything else requires authentication
-                        .anyRequest().authenticated()
-                )
-
-                // Use our DaoAuthenticationProvider
                 .authenticationProvider(authenticationProvider())
-
-                // JWT filter must run before username/password filter
                 .addFilterBefore(
                         authenticationJwtTokenFilter(),
                         UsernamePasswordAuthenticationFilter.class
                 )
-
-                // Required for H2 console iframe
                 .headers(headers ->
                         headers.frameOptions(frameOptions ->
                                 frameOptions.sameOrigin()
@@ -150,14 +94,8 @@ public class WebSecurityConfig {
         return http.build();
     }
 
-
-    // --------------------------------------------------
-    // IGNORE OLD SWAGGER RESOURCES
-    // --------------------------------------------------
-
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
-
         return web -> web.ignoring().requestMatchers(
                 "/v2/api-docs",
                 "/configuration/ui",
@@ -168,11 +106,6 @@ public class WebSecurityConfig {
         );
     }
 
-
-    // --------------------------------------------------
-    // INITIAL DATA
-    // --------------------------------------------------
-
     @Bean
     public CommandLineRunner initData(
             RoleRepository roleRepository,
@@ -180,10 +113,6 @@ public class WebSecurityConfig {
             PasswordEncoder passwordEncoder) {
 
         return args -> {
-
-            // ==========================================
-            // CREATE / FIND ROLES
-            // ==========================================
 
             Role userRole = roleRepository
                     .findByRoleName(AppRole.ROLE_USER)
@@ -209,115 +138,54 @@ public class WebSecurityConfig {
                             )
                     );
 
-
-            // ==========================================
-            // USER ROLES
-            // ==========================================
-
-            Set<Role> userRoles = new HashSet<>();
-            userRoles.add(userRole);
-
-
-            // ==========================================
-            // SELLER ROLES
-            // ==========================================
-
-            Set<Role> sellerRoles = new HashSet<>();
-            sellerRoles.add(sellerRole);
-
-
-            // ==========================================
-            // ADMIN ROLES
-            // ==========================================
-
-            Set<Role> adminRoles = new HashSet<>();
-            adminRoles.add(userRole);
-            adminRoles.add(sellerRole);
-            adminRoles.add(adminRole);
-
-
-            // ==========================================
-            // CREATE USER1
-            // ==========================================
-
-            User user1;
+            Set<Role> userRoles = Set.of(userRole);
+            Set<Role> sellerRoles = Set.of(sellerRole);
+            Set<Role> adminRoles = Set.of(userRole, sellerRole, adminRole);
 
             if (!userRepository.existsByUserName("user1")) {
-
-                user1 = new User(
+                User user1 = new User(
                         "user1",
                         "user1@example.com",
                         passwordEncoder.encode("password1")
                 );
-
-                user1.setRoles(new HashSet<>(userRoles));
-
+                user1.setRoles(userRoles);
                 userRepository.save(user1);
-
-            } else {
-
-                userRepository.findByUserName("user1")
-                        .ifPresent(user -> {
-                            user.setRoles(new HashSet<>(userRoles));
-                            userRepository.save(user);
-                        });
             }
 
-
-            // ==========================================
-            // CREATE SELLER1
-            // ==========================================
-
-            User seller1;
-
             if (!userRepository.existsByUserName("seller1")) {
-
-                seller1 = new User(
+                User seller1 = new User(
                         "seller1",
                         "seller1@example.com",
                         passwordEncoder.encode("password2")
                 );
-
-                seller1.setRoles(new HashSet<>(sellerRoles));
-
+                seller1.setRoles(sellerRoles);
                 userRepository.save(seller1);
-
-            } else {
-
-                userRepository.findByUserName("seller1")
-                        .ifPresent(seller -> {
-                            seller.setRoles(new HashSet<>(sellerRoles));
-                            userRepository.save(seller);
-                        });
             }
 
-
-            // ==========================================
-            // CREATE ADMIN
-            // ==========================================
-
-            User admin;
-
             if (!userRepository.existsByUserName("admin")) {
-
-                admin = new User(
+                User admin = new User(
                         "admin",
                         "admin@example.com",
                         passwordEncoder.encode("adminPass")
                 );
-
-                admin.setRoles(new HashSet<>(adminRoles));
-
+                admin.setRoles(adminRoles);
                 userRepository.save(admin);
-
-            } else {
-
-                userRepository.findByUserName("admin")
-                        .ifPresent(existingAdmin -> {
-                            existingAdmin.setRoles(new HashSet<>(adminRoles));
-                            userRepository.save(existingAdmin);
-                        });
             }
+
+            userRepository.findByUserName("user1").ifPresent(user -> {
+                user.setRoles(userRoles);
+                userRepository.save(user);
+            });
+
+            userRepository.findByUserName("seller1").ifPresent(seller -> {
+                seller.setRoles(sellerRoles);
+                userRepository.save(seller);
+            });
+
+            userRepository.findByUserName("admin").ifPresent(admin -> {
+                admin.setRoles(adminRoles);
+                userRepository.save(admin);
+            });
         };
     }
 }
