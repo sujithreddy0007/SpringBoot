@@ -129,6 +129,15 @@ public class AuthController {
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
     }
 
+    @GetMapping("/username")
+    public String currentUserName(Authentication authentication){
+        if(authentication != null){
+            return authentication.getName();
+        } else{
+            return "";
+        }
+    }
+
     @GetMapping("/user")
     public ResponseEntity<?> getUserDetails(Authentication authentication){
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
@@ -143,6 +152,13 @@ public class AuthController {
         return ResponseEntity.ok()
                 .body(response);
 
+    }
 
+    @PostMapping("/signout")
+    public ResponseEntity<?> signoutUser(){
+        ResponseCookie cookie = jwtUtils.getCleanJwtCookie();
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE,
+                        cookie.toString())
+                .body(new MessageResponse("You've have been signed out!"));
     }
 }
