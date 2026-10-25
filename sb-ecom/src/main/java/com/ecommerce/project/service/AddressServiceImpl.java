@@ -61,7 +61,7 @@ public class AddressServiceImpl implements AddressService{
     }
 
     @Override
-    public AddressDTO updateAddressById(Long addressId, AddressDTO addressDTO) {
+    public AddressDTO updateAddress(Long addressId, AddressDTO addressDTO) {
 
         Address addressFromDatabase = addressRepository.findById(addressId)
                 .orElseThrow(() -> new ResourceNotFoundException("Address","addressId",addressId));
