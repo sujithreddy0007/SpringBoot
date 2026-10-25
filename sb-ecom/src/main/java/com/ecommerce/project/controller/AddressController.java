@@ -31,7 +31,7 @@ public class AddressController {
     @GetMapping("/addresses")
     public ResponseEntity<List<AddressDTO>> getAddress(){
 
-        List<AddressDTO> addressList = addressService.getAddress();
+        List<AddressDTO> addressList = addressService.getAddresses();
         return new ResponseEntity<>(addressList, HttpStatus.OK);
     }
 
@@ -41,6 +41,14 @@ public class AddressController {
         AddressDTO addressDTO = addressService.getAddressById(addressId);
         return new ResponseEntity<>(addressDTO, HttpStatus.OK);
     }
+
+    @GetMapping("/users/addresses")
+    public ResponseEntity<List<AddressDTO>> getUserAddress(){
+        User user = authUtil.loggedInUser();
+        List<AddressDTO> addressList = addressService.getUserAddresses(user);
+        return new ResponseEntity<>(addressList, HttpStatus.OK);
+    }
+
 
 
 }
